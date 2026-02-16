@@ -13,3 +13,6 @@ There are 2 display styles:
 2. Half: The half of the keys will display one category while the other half displays another one (e.g. Groups and Colors)
 
 To get back to the style select press the up and down button simultaneously.
+
+
+## Troubleshooting
