@@ -86,6 +86,8 @@ class key:
 
 
 class CustomStreamDeck:
+    brightness = 100
+    palette = ["channels", "channels"]
     def __init__(self):
         self.deck = init_streamdeck()
         try:
@@ -100,6 +102,20 @@ class CustomStreamDeck:
         for x in self.keys:
             x.update()
         self.deck.set_key_callback(self.key_action_callback)
+        self.deck.set_brightness(self.brightness)
+
+    def brighter(self):
+        self.brightness = min(100, self.brightness+10)
+        if self.brightness == 50:           # Compensate strange dimming behaviour
+            self.brightness = 80
+        self.deck.set_brightness(self.brightness)
+
+    def darker(self):
+        self.brightness = max(10, self.brightness-10)
+        if self.brightness == 70:           # Compensate strange dimming behaviour
+            self.brightness = 40
+        self.deck.set_brightness(self.brightness)
+        self.deck.set_brightness(self.brightness)
 
     def reset(self):
         for x in self.keys:
@@ -128,3 +144,71 @@ class CustomStreamDeck:
         self.deck.reset()
         self.deck.close()
 
+    def set_palette_from_key_press(self, key_nr):
+        if key_nr < 16:
+            palette_idx = 0
+            key_nr -= 1
+        else:
+            palette_idx = 1
+            key_nr -= 17
+        if key_nr >= 6: key_nr -= 2
+        self.palette[palette_idx] = index_map_reverse[key_nr]
+
+        if palette_idx == 0:
+            highlight_current_panel(self)
+        else:
+            highlight_current_panel(self, False)
+
+
+def open_live_full(sd):
+    print("Opening Live Full")
+
+def open_live_half(sd):
+    print("Opening Live Half")
+
+
+def open_config_full(sd):
+    sd.reset_all_callbacks()
+    sd.keys[7].set_callback(lambda x: sd.brighter())
+    sd.keys[15].set_callback(lambda x: sd.darker())
+    sd.keys[8].set_callback(lambda x: open_config_half(sd))
+    sd.keys[31].set_callback(lambda x: open_live_full(sd))
+    sd.set_keyset(PAGE_CONFIG_FULL)
+    connect_config_selection_keys(sd)
+    highlight_current_panel(sd)     # contains update all keys
+
+def open_config_half(sd):
+    sd.reset_all_callbacks()
+    sd.keys[7].set_callback(lambda x: sd.brighter())
+    sd.keys[15].set_callback(lambda x: sd.darker())
+    sd.keys[0].set_callback(lambda x: open_config_full(sd))
+    sd.keys[31].set_callback(lambda x: open_live_half(sd))
+    sd.set_keyset(PAGE_CONFIG_HALF)
+    connect_config_selection_keys(sd)
+    connect_config_selection_keys(sd, False)
+    highlight_current_panel(sd)     # contains update all keys
+    highlight_current_panel(sd, upper_set = False)
+
+def highlight_current_panel(sd, upper_set = True):
+    if upper_set:
+        key_idx = [1,2,3,4,5,6,9,10,11,12,13,14]
+        keyword = sd.palette[0]
+        idx = 1
+    else:
+        key_idx = [17,18,19,20,21,22,25,26,27,28,29,30]
+        keyword = sd.palette[1]
+        idx = 17
+    for i in key_idx:
+        sd.keys[i].color = colordict["white"]
+    idx += index_map[keyword]
+    if index_map[keyword] >= 6: idx += 2
+    sd.keys[idx].color = colordict["selected"]
+    sd.update_all_keys()
+
+def connect_config_selection_keys(sd, upper_set = True):
+    if upper_set:
+        key_idx = [1,2,3,4,5,6,9,10,11,12,13,14]
+    else:
+        key_idx = [17,18,19,20,21,22,25,26,27,28,29,30]
+    for i in key_idx:
+        sd.keys[i].set_callback(lambda x: sd.set_palette_from_key_press(x))

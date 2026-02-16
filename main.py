@@ -9,15 +9,10 @@ from data import *
 
 
 
+
 sd = CustomStreamDeck()
 
-
-sd.keys[0].set_callback(lambda f : print("Hallo Welt, Taste ", f))
-
-sd.set_keyset(PAGE_CONFIG)
-sd.update_all_keys()
-
-
+open_config_full(sd)
 
 input("ENTER to Quit…")
 
