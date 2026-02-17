@@ -47,7 +47,10 @@ DS_MODES = [["Channels", colordict["channels"]], ["Groups", colordict["groups"]]
             [ "Effects", colordict["effects"]],["Snapshots", colordict["snapshots"]],
             [ "Magic Sheets", colordict["magic_sheets"]], [ "Scenes", colordict["scenes"]]]
 
-
+FULL_KEY_IDS = [0,1,2,3,4,5,6,8,9,10,11,12,13,14,16,17, 18,19,20,21,22,23,24,25,26,27,28,29,30,31]
+FULL_KEY_NAV = [7,15]               # Up, Down
+HALF_KEY_IDS = [[0,1,2,3,4,5,6,8,9,10,11,12,13,14],[16,17,18,19,20,21,22,24,25,26,27,28,29,30]]
+HALF_KEY_NAV = [[7,15],[23,31]]     # 1.Up, 1.Down, 2.Up, 2.Down
 
 class Keyset:
     def __init__(self, number = "", text="" , background_color = colordict["black"], color=colordict["white"]):

@@ -23,6 +23,7 @@ def init_streamdeck():
     return deck
 
 class key:
+    pressed = False
     def __init__(self, font_number, font_text, color, color_highlight, background_color, deck, key_index):
         self._number = ""
         self._text = ""
@@ -45,11 +46,13 @@ class key:
         self.background_color = keyset.background_color
 
     def pushed(self):
+        self.pressed = True
         if self._callback:
             self._callback(self._key_index)
         self.update(self.color_highlight)
 
     def released(self):
+        self.pressed = False
         self.update()
 
     def set_content(self, number, text):
@@ -88,6 +91,7 @@ class key:
 class CustomStreamDeck:
     brightness = 100
     palette = ["channels", "channels"]
+    full_mode = True
     def __init__(self):
         self.deck = init_streamdeck()
         try:
@@ -159,11 +163,35 @@ class CustomStreamDeck:
         else:
             highlight_current_panel(self, False)
 
+def live_up_down_handling(sd, key_nr):
+    if sd.keys[FULL_KEY_NAV[0]].pressed and sd.keys[FULL_KEY_NAV[1]].pressed:
+        if sd.full_mode:
+            open_config_full(sd)
+        else:
+            open_config_half(sd)
+
+
 
 def open_live_full(sd):
+    sd.full_mode = True
     print("Opening Live Full")
+    sd.reset_all_callbacks()
+    sd.reset()
+    number = 1
+    for i in FULL_KEY_IDS:
+        sd.keys[i].background_color = colordict[sd.palette[0]]
+        sd.keys[i].set_content(str(number), "")
+        number += 1
+    sd.keys[FULL_KEY_NAV[0]].set_callback(lambda x: live_up_down_handling(sd,x))
+    sd.keys[FULL_KEY_NAV[1]].set_callback(lambda x: live_up_down_handling(sd,x))
+    sd.keys[FULL_KEY_NAV[0]].set_content("Up", "Page")
+    sd.keys[FULL_KEY_NAV[1]].set_content("Down", "Page")
+    sd.update_all_keys()
+
+
 
 def open_live_half(sd):
+    sd.full_mode = False
     print("Opening Live Half")
 
 
@@ -172,19 +200,17 @@ def open_config_full(sd):
     sd.keys[7].set_callback(lambda x: sd.brighter())
     sd.keys[15].set_callback(lambda x: sd.darker())
     sd.keys[8].set_callback(lambda x: open_config_half(sd))
-    sd.keys[31].set_callback(lambda x: open_live_full(sd))
+    sd.keys[31].set_callback(lambda x : open_live_full(sd))
     sd.set_keyset(PAGE_CONFIG_FULL)
     connect_config_selection_keys(sd)
     highlight_current_panel(sd)     # contains update all keys
 
 def open_config_half(sd):
-    sd.reset_all_callbacks()
-    sd.keys[7].set_callback(lambda x: sd.brighter())
-    sd.keys[15].set_callback(lambda x: sd.darker())
+    open_config_full(sd)            # Loads all defaults from full setup
+    sd.keys[8].set_callback(None)
     sd.keys[0].set_callback(lambda x: open_config_full(sd))
-    sd.keys[31].set_callback(lambda x: open_live_half(sd))
+    sd.keys[31].set_callback(lambda x : open_live_half(sd))
     sd.set_keyset(PAGE_CONFIG_HALF)
-    connect_config_selection_keys(sd)
     connect_config_selection_keys(sd, False)
     highlight_current_panel(sd)     # contains update all keys
     highlight_current_panel(sd, upper_set = False)
